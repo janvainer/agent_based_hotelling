@@ -1,9 +1,10 @@
+import nashpy as ns
+import time, csv, pickle
+from tabulate import tabulate
+
 from nashq_agent import NashQ
 from next_state import next_state
 from profit_function import profit
-import nash as ns
-import time, csv, pickle
-from tabulate import tabulate
 
 # allows to save an potentially again retrieve the agents with their learned valules
 def save_object(obj, filename):
@@ -12,6 +13,7 @@ def save_object(obj, filename):
 
 
 def simulate(run, iterations = 10000, init_state = (3,3), param = [0.5,0.5]):
+    print(f"Starting run {run} for parameters {param}")
 
     # run is the order of this simulation
     # Parameters of agents
@@ -104,11 +106,12 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--discount_rates", choices={"0 0", "0 0.4", "0 0.8", "0.4 0.4", "0.4 0.8", "0.8 0.8"})
-    parser.add_argument("--simulation_repeats", default=100, int)
-    parser.add_argument("--n_iters", default=30000, int)
-    parser.add_argument("--n_jobs", default=1, int)
+    parser.add_argument("--simulation_repeats", default=100, type=int)
+    parser.add_argument("--n_iters", default=30000, type=int)
+    parser.add_argument("--n_jobs", default=1, type=int)
     args = parser.parse_args()
-    param = [float(dr) for a in args.discount_rates.split()]
+    param = [float(dr) for dr in args.discount_rates.split()]
+
 
     if args.n_jobs == 1:
         for run in range(args.simulation_repeats):
