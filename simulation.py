@@ -12,7 +12,7 @@ def save_object(obj, filename):
         pickle.dump(obj, output, pickle.HIGHEST_PROTOCOL)
 
 
-def simulate(run, iterations = 10000, init_state = (3,3), param = [0.5,0.5]):
+def simulate(run, iterations = 10000, param = [0.5,0.5], init_state = (3,3)):
     print(f"Starting run {run} for parameters {param}")
 
     # run is the order of this simulation
@@ -111,7 +111,6 @@ if __name__ == "__main__":
     parser.add_argument("--n_jobs", default=1, type=int)
     args = parser.parse_args()
     param = [float(dr) for dr in args.discount_rates.split()]
-
 
     if args.n_jobs == 1:
         for run in range(args.simulation_repeats):
