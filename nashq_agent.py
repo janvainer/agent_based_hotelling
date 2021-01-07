@@ -7,7 +7,7 @@ import numpy as np
 
 class NashQ:
     def __init__(self, actions, l = 0.8):
-        """Set agent's learning parameters and available actions. 
+        """Set agent's learning parameters and available actions.
 
         Keyword arguments:
         actions -- number of available actions
