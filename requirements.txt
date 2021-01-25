@@ -1,5 +1,5 @@
-joblib==0.16.0
+joblib
 nashpy==0.0.17
-numpy==1.15.4
-scipy==1.1.0
-tabulate==0.8.2
+numpy
+scipy
+tabulate

@@ -1,7 +1,9 @@
 import random
+import numpy as np
+
 
 class Agent:
-    def __init__(self, actions, l)
+    def __init__(self, actions, l):
         """Set agent's learning parameters and available actions.
 
         Keyword arguments:
@@ -19,18 +21,22 @@ class Agent:
         # constant for exploration rate
         self.c = 0.2
 
+    def reset(self):
+        self.memoryQ = {}
+        self.memorySA = {}
+        self.memoryE = {}
+
+    def _invert(self,state):
+        """Returns mirror image of current state"""
+
+        return (state[1],state[0])
+
     def _insert_new_state(self, state):
-        """Inserts new state and its mirror image in the memoryQ
-            Assigns zero payoff matrix of proper size to both new states
-        """
         state = tuple(state)
         ac = self.actions
-        self.memoryQ[state] = np.zeros((ac,ac))
-        self.memoryQ[self._invert(state)] = np.zeros((ac,ac))
-        self.memorySA[state] = np.ones((ac,ac))
-        self.memorySA[self._invert(state)] = np.ones((ac,ac))
+        self.memoryQ[state] = np.zeros(ac)
+        self.memorySA[state] = np.ones(ac)
         self.memoryE[state] = 1
-        self.memoryE[self._invert(state)] = 1
 
     # actions must come in the order in which the agents were given at the beginning
     def take_response(self,my_rew,enem_rew,last_state,my_ac, enem_ac, next_state):
@@ -45,14 +51,55 @@ class Agent:
         """
         raise NotImplementedError("Reimplement this to get a valid agent")
 
+    def random_action(self):
+        return np.asscalar(np.random.choice(self.actions,1)), 0
+
 
 class RandomAgent(Agent):
 
     def next_action(self, state):
-        return random.randint(self.actions), 0
+        return self.random_action()
 
     def take_response(self,my_rew,enem_rew,last_state,my_ac, enem_ac, next_state):
         # random agent ignores responses
         pass
 
 
+class QAgent(Agent):
+
+    def next_action(self, state):
+        state = tuple(state)
+
+        # insert new state + its invert, decide randomly upon an action
+        if state not in self.memoryQ:
+            self._insert_new_state(state)
+            return self.random_action()
+
+        # explore, or play Nash strategy based on agents expectations, exploration if random < c/n(s)    
+        if np.random.random() < self.c/self.memoryE[state]:
+            return self.random_action()
+        else:
+            best_action = np.argmax(self.memoryQ[state])
+            expected_utility = max(self.memoryQ[state])
+            return best_action, expected_utility
+
+
+    def take_response(self,my_rew,enem_rew,last_state,my_ac, enem_ac, next_state):
+        last_state = tuple(last_state)
+        q = self.memoryQ[last_state][my_ac]
+        # 1/n learning rate guarantees convergence thanks to non-zero exploration rate
+        a = 1/self.memorySA[last_state][my_ac]
+        l = self.l
+        r = my_rew
+
+        # Price agents are contextual bandits
+        # Location agents are Q agents
+        if next_state not in self.memoryQ:
+            max_q = 0
+        elif next_state == last_state:
+                max_q = 0
+        else: max_q = max(self.memoryQ[next_state])
+
+        q = (1-a)*q + a*(r+l*max_q)
+        self.memoryQ[last_state][my_ac] = q
+        self.memorySA[last_state][my_ac] +=1
